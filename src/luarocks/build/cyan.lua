@@ -43,14 +43,17 @@ local function build(rockspec, build_dir)
    -- install lua files
    for _, file in ipairs(fs.find(build_dir)) do
       local src = dir.path(build_dir, file)
-      local dst = dir.path(luadir, file)
-      
-      local ok = fs.make_dir(dir.dir_name(dst))
-      if not ok then return nil, "Failed creating directory to install files in: " .. dir.dir_name(dst) end
+      if fs.is_file(src) then
+         local dst = dir.path(luadir, file)
+         local dst_dir = dir.dir_name(dst)
 
-      local ok, err = fs.copy(src, dst)
-      if not ok then
-         return nil, "Failed installing "..src.." in "..dst..": "..err
+         local ok, err = fs.make_dir(dst_dir)
+         if not ok then return nil, "Failed creating directory to install files in: " .. dst_dir ..": " .. err end
+
+         local ok, err = fs.copy(src, dst)
+         if not ok then
+            return nil, "Failed installing "..src.." in "..dst..": "..err
+         end
       end
    end
 
@@ -63,8 +66,8 @@ local function build(rockspec, build_dir)
          if fs.is_file(src) and src:find("^[^%.].-%.tl$") and not src:find("%.d%.tl$") then
             local dst = dir.path(luadir, file)
 
-            local ok = fs.make_dir(dir.dir_name(dst))
-            if not ok then return nil, "Failed creating directory to install files in: " .. dir.dir_name(dst) end
+            local ok, err = fs.make_dir(dir.dir_name(dst))
+            if not ok then return nil, "Failed creating directory to install files in: " .. dir.dir_name(dst) .. ": " .. err end
 
             local ok, err = fs.copy(src, dst)
             if not ok then
